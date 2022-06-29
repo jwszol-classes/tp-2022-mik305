@@ -18,29 +18,17 @@ Remember if you add more than 8 passengers in the third step the overload inform
 
 Libraries used in project:
 
+- inlcude OpenGL
+  - glad
+  - GLFW
+  - imgui
+  - stb
+
 - include algorithm
 
 - include chrono
 
 - include cmath
-
-- include imgui.h
-
-- include imgui_internal.h
-
-- include functional
-
-- include stdio.h
-
-- include imgui.h
-
-- include backends/imgui_impl_glfw.h
-
-- include backends/imgui_impl_opengl3.h
-
-- include GLES2/gl2.h
-
-- include glfw3.h
 
 The content of key files:
 
