@@ -276,3 +276,196 @@ void Elevator::drawElevator()
                                                 ImDrawFlags_Closed,
                                                 TH);
 }
+
+void addFloorPoints(std::vector<ImVec2>& points, int floor, int floors)
+{
+    if (floor == floors)    
+    {
+        points.push_back(ImVec2{W + L, H + floor*Lh});  
+        points.push_back(ImVec2{W, H + floor*Lh});
+        return;
+    }
+
+    points.push_back(ImVec2{W + L, H + floor*Lh});
+    points.push_back(ImVec2{W + L - Ll, H + floor*Lh});
+    points.push_back(ImVec2{W + L, H + floor*Lh});
+
+    addFloorPoints(points, floor + 1, floors);
+
+    points.push_back(ImVec2{W, H + floor*Lh});
+    points.push_back(ImVec2{W + Ll, H + floor*Lh});
+    points.push_back(ImVec2{W, H + floor*Lh});
+}
+
+void Elevator::drawElevator()
+{
+    const auto COLOR = ImU32{0xFF000000};  
+    const auto ELEVATOR_COLOR = ImU32{0xFF06E0E0};   
+    const auto ELEVATOR_COLOR_RED = ImU32{0xFF0000FF};   
+    const auto ELEVATOR_COLOR_NOT_MOVE = ImU32{0xFF628484};  
+    const auto TH = 10.0f; 
+
+    static std::vector<ImVec2> shaftPoints = {};    
+    static int lastTimeFloors = 0;  
+
+    if (lastTimeFloors != m_floors) 
+    {
+        lastTimeFloors = m_floors;  
+
+        std::vector<ImVec2> points = {ImVec2{W, H}, ImVec2{W + L, H}};    
+
+        addFloorPoints(points, 1, m_floors + 1);    
+
+        points.push_back(ImVec2{W, H + Lh});      
+        points.push_back(ImVec2{W + Ll, H + Lh});
+        points.push_back(ImVec2{W, H + Lh});
+
+        std::swap(points, shaftPoints);
+    }
+
+   
+    const auto E_WB = W;        
+    const auto E_WE = W + L;    
+
+    auto E_HB = float(H) + float(Lh) * (float(m_floors) - m_currentFloor);          
+    auto E_HE = float(H) + float(Lh) * (float(m_floors) - m_currentFloor + 1.0f);   
+
+    auto upperLeft = ImVec2{E_WB, E_HB};   
+    auto lowerRight = ImVec2{E_WE, E_HE};  
+
+    auto color = ELEVATOR_COLOR;    
+    if (m_passangers.size() > MAX_PASS)  
+        color = ELEVATOR_COLOR_RED;
+    else if (m_direction == 0)   
+        color = ELEVATOR_COLOR_NOT_MOVE;    
+
+
+    ImGui::GetBackgroundDrawList()->AddRectFilled(upperLeft, lowerRight, color);
+
+ 
+    ImGui::GetBackgroundDrawList()->AddPolyline(shaftPoints.data(),
+                                                shaftPoints.size(),
+                                                COLOR,
+                                                ImDrawFlags_Closed,
+                                                TH);
+}
+
+
+void Elevator::elevatorGo()
+{
+    const auto MOVE_TIME = 100; 
+
+    static auto timestamp = std::chrono::system_clock::now();   
+                                                               
+    const auto currentTime = std::chrono::system_clock::now();    
+    const auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(
+                currentTime - timestamp).count();   
+
+    if (delta < m_timewait)    
+        return;                
+
+    
+    timestamp = std::chrono::system_clock::now();   
+                                                  
+    if (m_passangers.size() > MAX_PASS)            
+        return;                                     
+
+    if (m_direction == 1)     
+    {
+        m_currentFloor += 0.05f;    
+        m_timewait = MOVE_TIME;     
+    }
+    else if (m_direction == -1)     
+    {
+        m_currentFloor -= 0.05f;    
+        m_timewait = MOVE_TIME;    
+    }
+
+
+    if (!m_queue.empty() && std::fabs(m_currentFloor - float(m_queue.front())) < 0.001f)   
+    {
+        const int currentFloor = m_queue.front();
+       
+        if (!m_passangers.empty())      
+            m_passangers.erase(std::remove(m_passangers.begin(),
+                                           m_passangers.end(), currentFloor), m_passangers.end());
+
+        if (!m_waitingPassangers.empty())   
+        {
+            for (unsigned i = 0; i < m_waitingPassangers.size(); ++i)   
+            {
+                if (m_waitingPassangers[i].first == currentFloor)   
+                {
+                    m_passangers.push_back(m_waitingPassangers[i].second);
+                    insertNextFloor(m_waitingPassangers[i].second);                 
+                }
+            }
+            m_waitingPassangers.erase(std::remove_if(m_waitingPassangers.begin(), m_waitingPassangers.end(),
+                                      [&](const auto& passanger) { return currentFloor == passanger.first; }),
+                                      m_waitingPassangers.end());   
+       }
+
+        m_queue.erase(m_queue.begin());     
+        m_direction = 0;                    
+        m_timewait = 2000;               
+        recalculateQueue();                 
+        return;                           
+    }
+
+    if (m_direction == 0)   
+    {
+        if (!m_queue.empty())  
+        {
+            auto nextFloor = m_queue.front();   
+            if (std::fabs(m_currentFloor - float(nextFloor)) < 0.001f)   
+            {
+                m_queue.erase(m_queue.begin());    
+                recalculateQueue();                 
+            }
+            else if (m_currentFloor < nextFloor)    
+            {
+                m_direction = 1;               
+            }
+            else                                    
+            {
+                m_direction = -1;                   
+            }
+            m_timewait = MOVE_TIME;                 
+        }
+        else if (std::fabs(m_currentFloor) < 0.01f)   
+        {
+            m_currentFloor = 0.0f;         
+            m_timewait = 500;             
+        }
+        else    
+        {
+            if (m_timewait == 5000)     
+            {
+                m_timewait = 0;         
+                m_direction = -1;       
+                m_queue.push_back(0);   
+            }
+            else 
+            {
+                m_timewait = 5000;     
+            }
+        }
+    }
+}
+
+
+void Elevator::recalculateQueue()
+{
+    m_queueStr.clear();     
+
+    if (!m_queue.empty())   
+        m_queueStr += std::to_string(m_queue.front());      
+
+    for (unsigned i = 1; i < m_queue.size(); ++i)    
+    {
+        m_queueStr += ", ";                        
+        m_queueStr += std::to_string(m_queue[i]);   
+    }
+}
+
+
