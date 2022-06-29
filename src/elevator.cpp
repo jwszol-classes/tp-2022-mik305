@@ -20,7 +20,6 @@ void Elevator::draw()
     drawMenu();    
 }
 
-
 void Elevator::drawQueueTypeWidgets()
 {
     ImGui::PushItemWidth(360);  
@@ -30,4 +29,45 @@ void Elevator::drawQueueTypeWidgets()
     ImGui::RadioButton("Uwzglednij ruch - na parter", &m_queueType, 2);
     ImGui::NewLine();   
     ImGui::Separator(); 
+}
+
+void Elevator::drawPassangersWidgets(int& nextFloor)
+{
+    ImGui::PushItemWidth(90);  
+    ImGui::InputInt("Liczba pasazerow", &m_incomingPassangers);  
+    ImGui::InputInt("Pietro wejscia", &m_inFloor); 
+    ImGui::InputInt("Pietro wyjscia", &m_outFloor);
+
+    m_incomingPassangers = std::clamp(m_incomingPassangers, 0, 32); 
+    m_inFloor = std::clamp(m_inFloor, 0, m_floors);  
+    m_outFloor = std::clamp(m_outFloor, 0, m_floors);
+
+    if (ImGui::Button("Dodaj oczekujacach pasazerow##btn")) 
+    {
+        if (m_inFloor != m_outFloor)            
+        {
+            for (int i = 0; i < m_incomingPassangers; ++i)              
+                m_waitingPassangers.push_back({m_inFloor, m_outFloor}); 
+            nextFloor = m_inFloor;  
+        }
+    }
+    ImGui::NewLine();   
+    ImGui::Separator(); 
+}
+
+void Elevator::drawFloorsWidgets()
+{
+    ImGui::PushItemWidth(90); 
+    ImGui::InputInt("Liczba pieter", &m_floors);    
+    m_floors = std::clamp(m_floors, 1, MAX_FLOORS);  
+    ImGui::NewLine();   
+    ImGui::Separator();
+}
+
+void Elevator::drawStatInfoWidgets()
+{
+    ImGui::PushItemWidth(360);  
+    ImGui::LabelText("##l3", "Kolejne pietra: [%s]", m_queueStr.c_str()); 
+    ImGui::PushItemWidth(360);  
+    ImGui::LabelText("##l4", "Liczba pasazerow w windzie: %d", int(m_passangers.size())); 
 }
