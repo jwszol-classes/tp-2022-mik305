@@ -103,6 +103,39 @@ void Elevator::drawResetWidtgets()
     ImGui::Separator(); 
 }
 
+void Elevator::drawOverloadInfo()
+{
+    if (m_passangers.size() > MAX_PASS)            
+    {
+        ImGui::PushItemWidth(360);  // szerokosc linii textu znow na 360px
+        ImGui::LabelText("##l5", "Dopuszczalna waga przekroczona: %d/%d kg!",
+                         int(m_passangers.size() * PASSANGER_W), int(MAX_CAP)); 
+        ImGui::PushItemWidth(90);  // szerokosc linii textu znow na 90px
+        ImGui::InputInt("Wysadz pasazerow", &m_outcomingPassangers);  
+        m_outcomingPassangers = std::clamp(m_outcomingPassangers, 0, 32); 
+        if (ImGui::Button("Wysadz"))
+        {
+            m_outcomingPassangers = std::min(m_outcomingPassangers, int(m_passangers.size())); 
+            m_passangers.erase(m_passangers.begin(), m_passangers.begin() + m_outcomingPassangers); 
+        }
+    }
+}
 
+void Elevator::drawMenu()
+{
+    auto nextFloor = -1;
+    if (!ImGui::Begin("Ustawienia"))    
+        return;                         
+    drawQueueTypeWidgets();             
+    drawPassangersWidgets(nextFloor);   
+    drawFloorsWidgets();    
+    drawStatInfoWidgets();  
+    drawResetWidtgets();    
+    drawOverloadInfo();     
 
+    ImGui::End();       
+
+    if (nextFloor != -1)   
+        insertNextFloor(nextFloor);     
+}
 
