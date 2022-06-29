@@ -207,6 +207,12 @@ void Elevator::insertIncreasingDeacrising(int nextFloor)
                                         
 }
 
+const auto W = 100.f;      // odsuniecie od lewej krawedzi ekranu
+const auto H = 20.f;       // odsuniecie od gornej krawedzi ekranu
+const auto L = 140.f;      // szerokosc jednego poziomu
+const auto Lh = 115.f;     // wysokosc jednego poziomu
+const auto Ll = 30.f;      // szerokosc znacznikow pietra
+
 void addFloorPoints(std::vector<ImVec2>& points, int floor, int floors)
 {
     if (floor == floors)    
