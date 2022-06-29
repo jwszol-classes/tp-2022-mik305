@@ -71,3 +71,38 @@ void Elevator::drawStatInfoWidgets()
     ImGui::PushItemWidth(360);  
     ImGui::LabelText("##l4", "Liczba pasazerow w windzie: %d", int(m_passangers.size())); 
 }
+
+void Elevator::drawResetWidtgets()
+{
+    if (ImGui::Button("Reset symulacji"))
+    {
+        m_currentFloor = 0;
+        m_direction = 0;
+        m_queueStr.clear();
+        m_passangers.clear();
+        m_queue.clear();
+        m_waitingPassangers.clear();
+    }
+    if (ImGui::Button("Reset do wartosci domyslnych"))
+    {
+        m_currentFloor = 0;
+        m_direction = 0;
+        m_floors = 3;
+        m_inFloor = 0;
+        m_outFloor = 0;
+        m_incomingPassangers = 1;
+        m_outcomingPassangers = 0;
+        m_queueType = 0;
+        m_timewait = 4000;
+        m_queueStr.clear();
+        m_passangers.clear();
+        m_queue.clear();
+        m_waitingPassangers.clear();
+    }
+    ImGui::NewLine();   
+    ImGui::Separator(); 
+}
+
+
+
+
