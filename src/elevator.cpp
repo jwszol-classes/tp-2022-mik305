@@ -139,3 +139,71 @@ void Elevator::drawMenu()
         insertNextFloor(nextFloor);     
 }
 
+void Elevator::insertNextFloor(int nextFloor)
+{
+    const auto it = std::find(m_queue.begin(), m_queue.end(), nextFloor);   
+    if (it != m_queue.end())    
+        return;                 
+
+    if (m_queue.empty())
+    {
+        m_queue.push_back(nextFloor);       
+    }
+    else if (m_queueType == 0)            
+    {
+        m_queue.push_back(nextFloor);     
+    }
+    else if (m_queueType == 1)              
+    {
+        insertIncreasingDeacrising(nextFloor);  
+    }
+    else if (m_queueType == 2)            
+    {
+        insertAlwaysDescending(nextFloor);  
+    }
+
+    recalculateQueue();                     
+}
+
+void Elevator::insertAlwaysDescending(int nextFloor)
+{
+    int firstFloor;        
+    int secondFloor = m_currentFloor;           
+
+    for (unsigned i = 0; i < m_queue.size(); ++i)  
+    {
+        firstFloor = secondFloor;                   
+        secondFloor = m_queue[i];                   
+
+        if (firstFloor > nextFloor &&               
+            nextFloor > secondFloor)                
+        {
+            m_queue.insert(m_queue.begin() + i, nextFloor);   
+            return;     
+        }
+    }
+    m_queue.push_back(nextFloor);      
+
+}
+
+void Elevator::insertIncreasingDeacrising(int nextFloor)
+{
+    int firstFloor;
+    int secondFloor = m_currentFloor;            
+
+    for (unsigned i = 0; i < m_queue.size(); ++i)   
+    {
+        firstFloor = secondFloor;                   
+        secondFloor = m_queue[i];                   
+
+        if ((firstFloor > nextFloor && nextFloor > secondFloor) || 
+            (firstFloor < nextFloor && nextFloor < secondFloor))    
+        {
+            m_queue.insert(m_queue.begin() + i, nextFloor);   
+            return;    
+        }
+    }
+    m_queue.push_back(nextFloor);       
+                                        
+}
+
