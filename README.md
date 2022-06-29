@@ -1,6 +1,6 @@
 Description:
 
-- The project was made in C++ and OpenGL library and it's extensions
+- The project was made in C++ with OpenGL library and it's extensions
 - The project solves the problem of a control system of the lift in the building.
 - As in result of the project, the authors improved their programming skills and team working.
 
